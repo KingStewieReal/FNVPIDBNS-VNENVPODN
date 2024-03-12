@@ -74,8 +74,8 @@ const style = `
 // HTML for the GUI
 const panelHTML = `
 <div id="autojoin-panel">
-  <label><input type="checkbox" id="toggle-sound" checked> Enable Sound <span id="sound-status">(true)</span></label>
-  <label><input type="checkbox" id="toggle-autojoin" checked> Enable Autojoin <span id="autojoin-status">(true)</span></label>
+  <label><input type="checkbox" id="toggle-sound" checked> Sound <span id="sound-status">(true)</span></label>
+  <label><input type="checkbox" id="toggle-autojoin" checked> Autojoin <span id="autojoin-status">(true)</span></label>
   <label for="interval">Check Interval:</label>
   <input type="text" id="interval" value="5000">
 </div>
