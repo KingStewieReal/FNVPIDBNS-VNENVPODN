@@ -1,17 +1,15 @@
 // ==UserScript==
-// @name         Bloxflip Rain Autojoin
+// @name         Bloxflip Rain Autojoin with GUI (Draggable)
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @updateURL    https://github.com/KingStewieReal/FNVPIDBNS-VNENVPODN/edit/main/AUTOUPDATE.user.js
-// @downloadURL  https://github.com/KingStewieReal/FNVPIDBNS-VNENVPODN/edit/main/AUTOUPDATE.user.js
-// @description  Bloxflip Rain Autojoin
+// @description  Toggle notification sound and automatic clicking of the button for Bloxflip Rain Autojoin script with draggable GUI
 // @author       Hydrx
 // @match        https://bloxflip.com/*
 // @icon         https://bloxflip.com/favicon.ico
 // @license      MIT
 // ==/UserScript==
 
-// Function to make the panel draggable (TESTING AUTO UPDATE IF THIS SHOWS THAT MEANS IT WORKED)
+// Function to make the panel draggable
 function makeDraggable(element) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   element.onmousedown = dragMouseDown;
@@ -48,12 +46,12 @@ const style = `
   position: fixed;
   top: 10px;
   left: 10px;
-  background-color: #000; /* Background color set to black */
-  color: #fff; /* Text color set to white */
-  border: 1px solid #ccc;
+  background-color: #282828; /* Background color set to black */
+  color: #E7D7AD; /* Text color set to white */
+  border: 1px solid #8EC07C;
+  border-radius: 5px;
   padding: 10px;
   z-index: 9999;
-  cursor: move; /* Add cursor for draggability */
 }
 
 #autojoin-panel label {
@@ -68,14 +66,36 @@ const style = `
 #autojoin-panel input[type="text"] {
   width: 80px; /* Adjust width as needed */
   margin-top: 5px;
+  border: 1px solid #8EC07C;
+  border-radius: 5px;
+  background-color: #282828;
+  color: #E7D7AD;
+  padding: 5px;
+}
+
+#interval {
+  border: 1px solid #8EC07C;
+  border-radius: 5px;
+  background-color: #282828;
+  color: #E7D7AD;
+  padding: 5px;
+}
+
+input[type="text"]:unchecked {
+  background: #282828;
+  border: 1px solid #8EC07C;
+}
+
+input[type="checkbox"] {
+  accent-color: #8EC07C;
 }
 `;
 
 // HTML for the GUI
 const panelHTML = `
 <div id="autojoin-panel">
-  <label><input type="checkbox" id="toggle-sound" checked> Sound <span id="sound-status">(true)</span></label>
-  <label><input type="checkbox" id="toggle-autojoin" checked> Autojoin <span id="autojoin-status">(true)</span></label>
+  <label><input type="checkbox" id="toggle-sound" checked> Enable Sound <span id="sound-status">(true)</span></label>
+  <label><input type="checkbox" id="toggle-autojoin" checked> Enable Autojoin <span id="autojoin-status">(true)</span></label>
   <label for="interval">Check Interval:</label>
   <input type="text" id="interval" value="5000">
 </div>
