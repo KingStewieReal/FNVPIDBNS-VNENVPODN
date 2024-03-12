@@ -11,7 +11,7 @@
 // @license      MIT
 // ==/UserScript==
 
-// Function to make the panel draggable TESTING AUTO UPDATE
+// Function to make the panel draggable (TESTING AUTO UPDATE IF THIS SHOWS THAT MEANS IT WORKED)
 function makeDraggable(element) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   element.onmousedown = dragMouseDown;
