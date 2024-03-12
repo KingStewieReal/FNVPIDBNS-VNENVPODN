@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         Bloxflip Rain Autojoin with GUI (Draggable)
+// @name         Bloxflip Rain Autojoin
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @updateURL    https://github.com/KingStewieReal/FNVPIDBNS-VNENVPODN/edit/main/AUTOUPDATE.user.js
 // @downloadURL  https://github.com/KingStewieReal/FNVPIDBNS-VNENVPODN/edit/main/AUTOUPDATE.user.js
-// @description  Toggle notification sound and automatic clicking of the button for Bloxflip Rain Autojoin script with draggable GUI
+// @description  Bloxflip Rain Autojoin
 // @author       Hydrx
 // @match        https://bloxflip.com/*
 // @icon         https://bloxflip.com/favicon.ico
