@@ -60,7 +60,7 @@ const style = `
 #autojoin-panel label {
   display: block;
   margin-bottom: 5px;
-  margin-right: 82px; /* Add margin to the right side of the label */
+  margin-right: 30px; /* Add margin to the right side of the label */
 }
 
 #autojoin-panel input[type="checkbox"] {
@@ -99,6 +99,20 @@ const style = `
   padding: 5px 10px;
   cursor: pointer;
 }
+
+#bypass-install-button {
+  display: block;
+  margin-top: 10px;
+}
+
+#bypass-install-button button {
+  background-color: #8EC07C;
+  color: #282828;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
 `;
 
 // HTML for the GUI
@@ -111,6 +125,7 @@ const panelHTML = `
   <div id="last-successful-rain">Last Successful Rain: <span id="last-successful-rain-time">(Not Yet Detected)</span></div>
   <div id="last-rain">Last Rain: <span id="last-rain-time">(Not Yet Detected)</span></div>
   <button id="reset-button">Reset Settings</button>
+  <a id="bypass-install-button" href="https://chromewebstore.google.com/detail/captcha-solver-auto-hcapt/hlifkpholllijblknnmbfagnkjneagid" target="_blank"><button>Install Captcha Bypass</button></a>
 </div>
 `;
 
@@ -124,82 +139,25 @@ const autojoinPanel = document.getElementById('autojoin-panel');
 // Make the panel draggable
 makeDraggable(autojoinPanel);
 
-// Retrieve the checkboxes and input field
+// Retrieve the checkboxes
 const toggleSoundCheckbox = document.getElementById('toggle-sound');
 const toggleAutojoinCheckbox = document.getElementById('toggle-autojoin');
-const intervalInput = document.getElementById('interval');
-
-// Retrieve settings from localStorage or set default values
-let soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-let autojoinEnabled = localStorage.getItem('autojoinEnabled') === 'true';
-
-// Update checkbox state and text content based on soundEnabled variable
-toggleSoundCheckbox.checked = soundEnabled;
-document.getElementById('sound-status').textContent = `(${soundEnabled})`;
-
-// Update checkbox state and text content based on autojoinEnabled variable
-toggleAutojoinCheckbox.checked = autojoinEnabled;
-document.getElementById('autojoin-status').textContent = `(${autojoinEnabled})`;
 
 // Function to toggle notification sound
 function toggleNotificationSound() {
   soundEnabled = toggleSoundCheckbox.checked;
-  localStorage.setItem('soundEnabled', soundEnabled ? 'true' : 'false');
   document.getElementById('sound-status').textContent = `(${soundEnabled})`;
 }
 
 // Function to toggle automatic clicking of the button
 function toggleAutojoin() {
   autojoinEnabled = toggleAutojoinCheckbox.checked;
-  localStorage.setItem('autojoinEnabled', autojoinEnabled ? 'true' : 'false');
   document.getElementById('autojoin-status').textContent = `(${autojoinEnabled})`;
 }
 
-// Function to reset settings to default
-function resetToDefault() {
-  localStorage.removeItem('soundEnabled');
-  localStorage.removeItem('autojoinEnabled');
-  toggleSoundCheckbox.checked = false;
-  toggleAutojoinCheckbox.checked = false;
-  intervalInput.value = '5000';
-  soundEnabled = false;
-  autojoinEnabled = false;
-  document.getElementById('sound-status').textContent = '(false)';
-  document.getElementById('autojoin-status').textContent = '(false)';
-}
-
-// Add event listeners to the checkboxes and input field
+// Add event listeners to the checkboxes
 toggleSoundCheckbox.addEventListener('change', toggleNotificationSound);
 toggleAutojoinCheckbox.addEventListener('change', toggleAutojoin);
-
-// Add event listener to reset button
-const resetButton = document.getElementById('reset-button');
-resetButton.addEventListener('click', resetToDefault);
-
-// Function to fetch historyJson
-async function fetchHistoryJson() {
-  const history = await fetch('https://api.bloxflip.com/chat/history');
-  return JSON.parse(await history.text());
-}
-
-// Function to check if it's raining
-function checkIfRaining(historyJson) {
-  return historyJson && historyJson.rain && historyJson.rain.active;
-}
-
-// Function to check if the last rain was successful
-function checkIfLastRainSuccessful() {
-  const statusElements = document.querySelectorAll('div[role="status"]');
-  for (const element of statusElements) {
-    if (element.textContent.trim() === "You're now participating in this chat rain event!") {
-      return true;
-    }
-  }
-  return false;
-}
-
-// Define isRaining initially as false
-let isRaining = false;
 
 // Function to play sound if needed
 async function playSoundIfNeeded() {
@@ -237,7 +195,6 @@ async function handleAutojoin() {
   }
 }
 
-
 // Function to update the last rain time
 function updateLastRainTime() {
   const lastRainElement = document.getElementById('last-rain-time');
@@ -254,5 +211,46 @@ function updateLastSuccessfulRainTime() {
   lastSuccessfulRainElement.textContent = timeString;
 }
 
+// Function to reset settings
+function resetSettings() {
+  toggleSoundCheckbox.checked = false;
+  toggleAutojoinCheckbox.checked = false;
+  soundEnabled = false;
+  autojoinEnabled = false;
+  document.getElementById('sound-status').textContent = '(false)';
+  document.getElementById('autojoin-status').textContent = '(false)';
+}
+
+// Add event listener to reset button
+const resetButton = document.getElementById('reset-button');
+resetButton.addEventListener('click', resetSettings);
+
+// Initialize variables
+let soundEnabled = false;
+let autojoinEnabled = false;
+let isRaining = false;
+
 // Interval to check for rain every 5 seconds
 setInterval(handleAutojoin, 5000);
+
+// Function to fetch historyJson
+async function fetchHistoryJson() {
+  const history = await fetch('https://api.bloxflip.com/chat/history');
+  return JSON.parse(await history.text());
+}
+
+// Function to check if it's raining
+function checkIfRaining(historyJson) {
+  return historyJson && historyJson.rain && historyJson.rain.active;
+}
+
+// Function to check if the last rain was successful
+function checkIfLastRainSuccessful() {
+  const statusElements = document.querySelectorAll('div[role="status"]');
+  for (const element of statusElements) {
+    if (element.textContent.trim() === "You're now participating in this chat rain event!") {
+      return true;
+    }
+  }
+  return false;
+}
