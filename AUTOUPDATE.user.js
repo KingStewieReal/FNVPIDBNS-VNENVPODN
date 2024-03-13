@@ -130,7 +130,7 @@ const panelHTML = `
   <div id="last-successful-rain">Last Successful Rain: <span id="last-successful-rain-time">(Not Detected)</span></div>
   <div id="last-rain">Last Rain: <span id="last-rain-time">(Not Detected)</span></div>
   <button id="reset-button">Reset Settings</button>
-  <a id="bypass-install-button" href="https://chromewebstore.google.com/detail/captcha-solver-auto-hcapt/hlifkpholllijblknnmbfagnkjneagid" target="_blank"><button>Install Bypass Extension</button></a>
+  <a id="bypass-install-button" href="https://chromewebstore.google.com/detail/captcha-solver-auto-hcapt/hlifkpholllijblknnmbfagnkjneagid" target="_blank"><button>Install Captcha Bypass</button></a>
 </div>
 `;
 
