@@ -15,12 +15,14 @@ function makeDraggable(element) {
   element.onmousedown = dragMouseDown;
 
   function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    document.onmousemove = elementDrag;
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') { // Only start dragging if not clicking on input or button
+      e = e || window.event;
+      e.preventDefault();
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
   }
 
   function elementDrag(e) {
@@ -51,16 +53,19 @@ const style = `
   border: 1px solid #8EC07C;
   border-radius: 5px;
   padding: 10px;
+  padding-left: 20px; /* Add padding to the left side */
   z-index: 9999;
 }
 
 #autojoin-panel label {
   display: block;
   margin-bottom: 5px;
+  margin-right: 82px; /* Add margin to the right side of the label */
 }
 
 #autojoin-panel input[type="checkbox"] {
   margin-right: 5px;
+  width: auto; /* Set width to auto */
 }
 
 #autojoin-panel input[type="text"] {
@@ -81,23 +86,31 @@ const style = `
   padding: 5px;
 }
 
-input[type="text"]:unchecked {
-  background: #282828;
-  border: 1px solid #8EC07C;
+#last-successful-rain {
+  margin-top: 10px;
 }
 
-input[type="checkbox"] {
-  accent-color: #8EC07C;
+#reset-button {
+  margin-top: 10px;
+  background-color: #8EC07C;
+  color: #282828;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
 }
 `;
 
 // HTML for the GUI
 const panelHTML = `
 <div id="autojoin-panel">
-  <label><input type="checkbox" id="toggle-sound" checked> Sound <span id="sound-status">(true)</span></label>
-  <label><input type="checkbox" id="toggle-autojoin" checked> Autojoin <span id="autojoin-status">(true)</span></label>
+  <label><input type="checkbox" id="toggle-sound"> Sound <span id="sound-status">(false)</span></label>
+  <label><input type="checkbox" id="toggle-autojoin"> Autojoin <span id="autojoin-status">(false)</span></label>
   <label for="interval">Check Interval:</label>
   <input type="text" id="interval" value="5000">
+  <div id="last-successful-rain">Last Successful Rain: <span id="last-successful-rain-time">(Not Yet Detected)</span></div>
+  <div id="last-rain">Last Rain: <span id="last-rain-time">(Not Yet Detected)</span></div>
+  <button id="reset-button">Reset Settings</button>
 </div>
 `;
 
@@ -111,40 +124,57 @@ const autojoinPanel = document.getElementById('autojoin-panel');
 // Make the panel draggable
 makeDraggable(autojoinPanel);
 
-// Retrieve the checkboxes
+// Retrieve the checkboxes and input field
 const toggleSoundCheckbox = document.getElementById('toggle-sound');
 const toggleAutojoinCheckbox = document.getElementById('toggle-autojoin');
+const intervalInput = document.getElementById('interval');
+
+// Retrieve settings from localStorage or set default values
+let soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+let autojoinEnabled = localStorage.getItem('autojoinEnabled') === 'true';
+
+// Update checkbox state and text content based on soundEnabled variable
+toggleSoundCheckbox.checked = soundEnabled;
+document.getElementById('sound-status').textContent = `(${soundEnabled})`;
+
+// Update checkbox state and text content based on autojoinEnabled variable
+toggleAutojoinCheckbox.checked = autojoinEnabled;
+document.getElementById('autojoin-status').textContent = `(${autojoinEnabled})`;
 
 // Function to toggle notification sound
 function toggleNotificationSound() {
-  playSound = toggleSoundCheckbox.checked;
-  document.getElementById('sound-status').textContent = `(${playSound})`;
+  soundEnabled = toggleSoundCheckbox.checked;
+  localStorage.setItem('soundEnabled', soundEnabled ? 'true' : 'false');
+  document.getElementById('sound-status').textContent = `(${soundEnabled})`;
 }
 
 // Function to toggle automatic clicking of the button
 function toggleAutojoin() {
-  autoJoin = toggleAutojoinCheckbox.checked;
-  document.getElementById('autojoin-status').textContent = `(${autoJoin})`;
+  autojoinEnabled = toggleAutojoinCheckbox.checked;
+  localStorage.setItem('autojoinEnabled', autojoinEnabled ? 'true' : 'false');
+  document.getElementById('autojoin-status').textContent = `(${autojoinEnabled})`;
 }
 
-// Add event listeners to the checkboxes
+// Function to reset settings to default
+function resetToDefault() {
+  localStorage.removeItem('soundEnabled');
+  localStorage.removeItem('autojoinEnabled');
+  toggleSoundCheckbox.checked = false;
+  toggleAutojoinCheckbox.checked = false;
+  intervalInput.value = '5000';
+  soundEnabled = false;
+  autojoinEnabled = false;
+  document.getElementById('sound-status').textContent = '(false)';
+  document.getElementById('autojoin-status').textContent = '(false)';
+}
+
+// Add event listeners to the checkboxes and input field
 toggleSoundCheckbox.addEventListener('change', toggleNotificationSound);
 toggleAutojoinCheckbox.addEventListener('change', toggleAutojoin);
 
-// Modify your existing code to use the playSound and autoJoin variables
-let playSound = true;
-let autoJoin = true;
-
-async function playSoundIfNeeded() {
-  if (playSound) {
-    let audio = new Audio('https://www.myinstants.com/media/sounds/bepbob.mp3');
-    audio.muted = true;
-    setTimeout(() => {
-      audio.muted = false;
-      audio.play();
-    }, 1000);
-  }
-}
+// Add event listener to reset button
+const resetButton = document.getElementById('reset-button');
+resetButton.addEventListener('click', resetToDefault);
 
 // Function to fetch historyJson
 async function fetchHistoryJson() {
@@ -157,24 +187,71 @@ function checkIfRaining(historyJson) {
   return historyJson && historyJson.rain && historyJson.rain.active;
 }
 
+// Function to check if the last rain was successful
+function checkIfLastRainSuccessful() {
+  const statusElements = document.querySelectorAll('div[role="status"]');
+  for (const element of statusElements) {
+    if (element.textContent.trim() === "You're now participating in this chat rain event!") {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Define isRaining initially as false
 let isRaining = false;
+
+// Function to play sound if needed
+async function playSoundIfNeeded() {
+  if (soundEnabled) {
+    let audio = new Audio('https://www.myinstants.com/media/sounds/bepbob.mp3');
+    audio.muted = true;
+    setTimeout(() => {
+      audio.muted = false;
+      audio.play();
+    }, 1000);
+  }
+}
 
 // Function to handle autojoin logic
 async function handleAutojoin() {
   const historyJson = await fetchHistoryJson();
 
   if (checkIfRaining(historyJson) && !isRaining) {
-    await playSoundIfNeeded();
-    if (autoJoin) {
+    if (autojoinEnabled) {
+      await playSoundIfNeeded();
       setTimeout(() => {
-        document.querySelector('.chat_chatBannerJoinButton__avNuN').click();
+        const joinButton = document.evaluate('//p[contains(text(), "Join For Free")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (joinButton) {
+          joinButton.click();
+        }
       }, 1000);
     }
     isRaining = true;
+    updateLastRainTime();
+    if (checkIfLastRainSuccessful()) {
+      updateLastSuccessfulRainTime();
+    }
   } else if (!checkIfRaining(historyJson) && isRaining) {
     isRaining = false;
   }
+}
+
+
+// Function to update the last rain time
+function updateLastRainTime() {
+  const lastRainElement = document.getElementById('last-rain-time');
+  const now = new Date();
+  const timeString = now.toLocaleString();
+  lastRainElement.textContent = timeString;
+}
+
+// Function to update the last successful rain time
+function updateLastSuccessfulRainTime() {
+  const lastSuccessfulRainElement = document.getElementById('last-successful-rain-time');
+  const now = new Date();
+  const timeString = now.toLocaleString();
+  lastSuccessfulRainElement.textContent = timeString;
 }
 
 // Interval to check for rain every 5 seconds
