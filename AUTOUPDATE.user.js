@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Bloxflip Rain Autojoin with GUI (Draggable)
-// @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Toggle notification sound and automatic clicking of the button for Bloxflip Rain Autojoin script with draggable GUI
 // @author       Hydrx
 // @match        https://bloxflip.com/*
 // @icon         https://bloxflip.com/favicon.ico
 // @license      MIT
+// @downloadURL  https://raw.githubusercontent.com/KingStewieReal/FNVPIDBNS-VNENVPODN/main/AUTOUPDATE.user.js
+// @updateURL    https://raw.githubusercontent.com/KingStewieReal/FNVPIDBNS-VNENVPODN/main/AUTOUPDATE.user.js
 // ==/UserScript==
 
 // Function to make the panel draggable
@@ -90,6 +91,10 @@ const style = `
   margin-top: 10px;
 }
 
+#last-rain {
+  margin-top: 10px;
+}
+
 #reset-button {
   margin-top: 10px;
   background-color: #8EC07C;
@@ -122,10 +127,10 @@ const panelHTML = `
   <label><input type="checkbox" id="toggle-autojoin"> Autojoin <span id="autojoin-status">(false)</span></label>
   <label for="interval">Check Interval:</label>
   <input type="text" id="interval" value="5000">
-  <div id="last-successful-rain">Last Successful Rain: <span id="last-successful-rain-time">(Not Yet Detected)</span></div>
-  <div id="last-rain">Last Rain: <span id="last-rain-time">(Not Yet Detected)</span></div>
+  <div id="last-successful-rain">Last Successful Rain: <span id="last-successful-rain-time">(Not Detected)</span></div>
+  <div id="last-rain">Last Rain: <span id="last-rain-time">(Not Detected)</span></div>
   <button id="reset-button">Reset Settings</button>
-  <a id="bypass-install-button" href="https://chromewebstore.google.com/detail/captcha-solver-auto-hcapt/hlifkpholllijblknnmbfagnkjneagid" target="_blank"><button>Install Captcha Bypass</button></a>
+  <a id="bypass-install-button" href="https://chromewebstore.google.com/detail/captcha-solver-auto-hcapt/hlifkpholllijblknnmbfagnkjneagid" target="_blank"><button>Install Bypass Extension</button></a>
 </div>
 `;
 
@@ -147,110 +152,62 @@ const toggleAutojoinCheckbox = document.getElementById('toggle-autojoin');
 function toggleNotificationSound() {
   soundEnabled = toggleSoundCheckbox.checked;
   document.getElementById('sound-status').textContent = `(${soundEnabled})`;
+  localStorage.setItem('soundEnabled', soundEnabled); // Store soundEnabled in localStorage
 }
 
 // Function to toggle automatic clicking of the button
 function toggleAutojoin() {
   autojoinEnabled = toggleAutojoinCheckbox.checked;
   document.getElementById('autojoin-status').textContent = `(${autojoinEnabled})`;
-}
-
-// Add event listeners to the checkboxes
-toggleSoundCheckbox.addEventListener('change', toggleNotificationSound);
-toggleAutojoinCheckbox.addEventListener('change', toggleAutojoin);
-
-// Function to play sound if needed
-async function playSoundIfNeeded() {
-  if (soundEnabled) {
-    let audio = new Audio('https://www.myinstants.com/media/sounds/bepbob.mp3');
-    audio.muted = true;
-    setTimeout(() => {
-      audio.muted = false;
-      audio.play();
-    }, 1000);
-  }
-}
-
-// Function to handle autojoin logic
-async function handleAutojoin() {
-  const historyJson = await fetchHistoryJson();
-
-  if (checkIfRaining(historyJson) && !isRaining) {
-    if (autojoinEnabled) {
-      await playSoundIfNeeded();
-      setTimeout(() => {
-        const joinButton = document.evaluate('//p[contains(text(), "Join For Free")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        if (joinButton) {
-          joinButton.click();
-        }
-      }, 1000);
-    }
-    isRaining = true;
-    updateLastRainTime();
-    if (checkIfLastRainSuccessful()) {
-      updateLastSuccessfulRainTime();
-    }
-  } else if (!checkIfRaining(historyJson) && isRaining) {
-    isRaining = false;
-  }
-}
-
-// Function to update the last rain time
-function updateLastRainTime() {
-  const lastRainElement = document.getElementById('last-rain-time');
-  const now = new Date();
-  const timeString = now.toLocaleString();
-  lastRainElement.textContent = timeString;
-}
-
-// Function to update the last successful rain time
-function updateLastSuccessfulRainTime() {
-  const lastSuccessfulRainElement = document.getElementById('last-successful-rain-time');
-  const now = new Date();
-  const timeString = now.toLocaleString();
-  lastSuccessfulRainElement.textContent = timeString;
+  localStorage.setItem('autojoinEnabled', autojoinEnabled); // Store autojoinEnabled in localStorage
 }
 
 // Function to reset settings
 function resetSettings() {
   toggleSoundCheckbox.checked = false;
   toggleAutojoinCheckbox.checked = false;
-  soundEnabled = false;
-  autojoinEnabled = false;
-  document.getElementById('sound-status').textContent = '(false)';
-  document.getElementById('autojoin-status').textContent = '(false)';
+  soundEnabled = false; // Update soundEnabled variable
+  autojoinEnabled = false; // Update autojoinEnabled variable
+  toggleNotificationSound();
+  toggleAutojoin();
+  localStorage.removeItem('soundEnabled'); // Remove soundEnabled from localStorage
+  localStorage.removeItem('autojoinEnabled'); // Remove autojoinEnabled from localStorage
 }
 
 // Add event listener to reset button
 const resetButton = document.getElementById('reset-button');
 resetButton.addEventListener('click', resetSettings);
 
-// Initialize variables
-let soundEnabled = false;
-let autojoinEnabled = false;
-let isRaining = false;
+// Initialize variables from localStorage
+let soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+let autojoinEnabled = localStorage.getItem('autojoinEnabled') === 'true';
+toggleSoundCheckbox.checked = soundEnabled;
+toggleAutojoinCheckbox.checked = autojoinEnabled;
+toggleNotificationSound(); // Update soundEnabled variable
+toggleAutojoin(); // Update autojoinEnabled variable
 
-// Interval to check for rain every 5 seconds
-setInterval(handleAutojoin, 5000);
+// Add event listeners to the checkboxes
+toggleSoundCheckbox.addEventListener('change', toggleNotificationSound);
+toggleAutojoinCheckbox.addEventListener('change', toggleAutojoin);
 
-// Function to fetch historyJson
-async function fetchHistoryJson() {
-  const history = await fetch('https://api.bloxflip.com/chat/history');
-  return JSON.parse(await history.text());
-}
-
-// Function to check if it's raining
-function checkIfRaining(historyJson) {
-  return historyJson && historyJson.rain && historyJson.rain.active;
-}
-
-// Function to check if the last rain was successful
-function checkIfLastRainSuccessful() {
-  const statusElements = document.querySelectorAll('div[role="status"]');
-  for (const element of statusElements) {
-    if (element.textContent.trim() === "You're now participating in this chat rain event!") {
+// Function to find the last successful rain text anywhere on the page
+function findLastSuccessfulRain() {
+  const allTextNodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  let node;
+  while (node = allTextNodes.nextNode()) {
+    if (node.textContent.includes("You're now participating in this chat rain event!")) {
       return true;
     }
   }
   return false;
 }
+
+// Function to update the last successful rain time
+function updateLastSuccessfulRain() {
+  const lastSuccessfulRain = findLastSuccessfulRain();
+  const lastSuccessfulRainTime = new Date().toLocaleTimeString();
+  document.getElementById('last-successful-rain-time').textContent = lastSuccessfulRain ? lastSuccessfulRainTime : '(Not Detected)';
+}
+
+// Call the function to update last successful rain time on script initialization
+updateLastSuccessfulRain();
