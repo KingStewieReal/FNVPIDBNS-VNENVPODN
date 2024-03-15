@@ -190,24 +190,13 @@ toggleAutojoin(); // Update autojoinEnabled variable
 toggleSoundCheckbox.addEventListener('change', toggleNotificationSound);
 toggleAutojoinCheckbox.addEventListener('change', toggleAutojoin);
 
-// Function to find the last successful rain text anywhere on the page
-function findLastSuccessfulRain() {
-  const allTextNodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-  let node;
-  while (node = allTextNodes.nextNode()) {
-    if (node.textContent.includes("You're now participating in this chat rain event!")) {
-      return true;
-    }
+// Function to find and click the join button
+function autoJoinRain() {
+  const joinButton = document.querySelector('.text_text__fMaR4.text_semibold14__cxkXo.chat_chatBannerJoinButton__avNuN');
+  if (joinButton) {
+    joinButton.click();
   }
-  return false;
 }
 
-// Function to update the last successful rain time
-function updateLastSuccessfulRain() {
-  const lastSuccessfulRain = findLastSuccessfulRain();
-  const lastSuccessfulRainTime = new Date().toLocaleTimeString();
-  document.getElementById('last-successful-rain-time').textContent = lastSuccessfulRain ? lastSuccessfulRainTime : '(Not Detected)';
-}
-
-// Call the function to update last successful rain time on script initialization
-updateLastSuccessfulRain();
+// Set interval to auto join rain
+setInterval(autoJoinRain, 1000); // Adjust interval as needed
